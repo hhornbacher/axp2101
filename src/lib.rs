@@ -1,5 +1,32 @@
+use std::fmt::Display;
+
 use bitfield_struct::bitfield;
 use embedded_hal::i2c::I2c;
+
+#[derive(Debug, Copy, Clone)]
+pub struct Voltage(u16);
+
+impl From<u16> for Voltage {
+    fn from(value: u16) -> Self {
+        Self(value)
+    }
+}
+
+impl std::ops::Deref for Voltage {
+    type Target = u16;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Display for Voltage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let fraction = self.0 % 1000;
+        let decimal = (self.0 - fraction) / 1000;
+        write!(f, "{decimal}.{fraction} V")
+    }
+}
 
 #[derive(Debug, Copy, Clone)]
 #[repr(u8)]
@@ -421,21 +448,21 @@ where
     }
 
     /// Gets the Vsys voltage by reading the high and low register values
-    pub fn get_vsys_voltage(&mut self) -> Result<u16, I2C::Error> {
+    pub fn get_vsys_voltage(&mut self) -> Result<Voltage, I2C::Error> {
         let value = self.read_u16(Register::VsysHigh)?;
-        Ok(value)
+        Ok(value.into())
     }
 
     /// Gets the Vbat voltage by reading the high and low register values
-    pub fn get_vbat_voltage(&mut self) -> Result<u16, I2C::Error> {
+    pub fn get_vbat_voltage(&mut self) -> Result<Voltage, I2C::Error> {
         let value = self.read_u16(Register::VbatHigh)?;
-        Ok(value)
+        Ok(value.into())
     }
 
     /// Gets the Vbat voltage by reading the high and low register values
-    pub fn get_vbus_voltage(&mut self) -> Result<u16, I2C::Error> {
+    pub fn get_vbus_voltage(&mut self) -> Result<Voltage, I2C::Error> {
         let value = self.read_u16(Register::VbusHigh)?;
-        Ok(value)
+        Ok(value.into())
     }
 
     /// Sets the ADC Channel Enable Control register
