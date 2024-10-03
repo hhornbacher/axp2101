@@ -197,6 +197,18 @@ pub struct BatteryParameter {
     pub parameter: u8, // bits 0-7
 }
 
+#[bitfield(u8)]
+pub struct AdcChannelEnableControl {
+    pub battery_voltage_adc_enable: bool, // bit 0
+    pub ts_pin_adc_enable: bool,          // bit 1
+    pub vbus_voltage_adc_enable: bool,    // bit 2
+    pub system_voltage_adc_enable: bool,  // bit 3
+    pub die_temp_adc_enable: bool,        // bit 4
+    pub gpadc_channel_enable: bool,       // bit 5
+    #[bits(2)]
+    pub reserved: u8,       // bits 6-7
+}
+
 #[derive(Debug, Copy, Clone)]
 #[repr(u8)]
 pub enum BatteryCurrentDirection {
@@ -424,6 +436,22 @@ where
     pub fn get_vbus_voltage(&mut self) -> Result<u16, I2C::Error> {
         let value = self.read_u16(Register::VbusHigh)?;
         Ok(value)
+    }
+
+    /// Sets the ADC Channel Enable Control register
+    pub fn set_adc_channel_enable_control(
+        &mut self,
+        value: &AdcChannelEnableControl,
+    ) -> Result<(), I2C::Error> {
+        self.write_u8(Register::AdcChannelEnableControl, value.into_bits())
+    }
+
+    /// Gets the ADC Channel Enable Control register
+    pub fn get_adc_channel_enable_control(
+        &mut self,
+    ) -> Result<AdcChannelEnableControl, I2C::Error> {
+        let reg_value = self.read_u8(Register::AdcChannelEnableControl)?;
+        Ok(AdcChannelEnableControl::from_bits(reg_value))
     }
 
     // Writes u8 `value` from `register`
